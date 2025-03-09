@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: edu-con
+  data:
+    mongodb.uri:  mongodb://localhost:27017/educon
+
+server:
+  port: 8081
