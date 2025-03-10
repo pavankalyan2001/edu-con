@@ -17,18 +17,23 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @PostMapping("/book")
-    public ResponseEntity<Appointment> bookAppointment(@RequestBody Appointment appointment) {
+    public ResponseEntity<?> bookAppointment(@RequestBody Appointment appointment) {
         return new ResponseEntity<>(appointmentService.bookAppointment(appointment), HttpStatus.OK);
     }
 
     @GetMapping("/student")
-    public ResponseEntity<List<Appointment>> getAppointmentsForStudent(@RequestParam("studentId") String studentId) {
+    public ResponseEntity<?> getAppointmentsForStudent(@RequestParam("studentId") String studentId) {
         return new ResponseEntity<>(appointmentService.getAppointmentsForStudent(studentId), HttpStatus.OK);
     }
 
     @GetMapping("/consultant")
     public ResponseEntity<List<Appointment>> getAppointmentsForConsultant(@RequestParam("consultantId") String consultantId) {
         return new ResponseEntity<>(appointmentService.getAppointmentsForConsultant(consultantId), HttpStatus.OK);
+    }
+
+    @GetMapping("/booked-slots")
+    public ResponseEntity<?> getBookedSlots(@RequestParam("date") String date, @RequestParam("consultantId") String consultantId) {
+        return new ResponseEntity<>(appointmentService.getBookedSlots(date,consultantId), HttpStatus.OK);
     }
 
     @PutMapping("/update")

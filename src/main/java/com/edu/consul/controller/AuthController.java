@@ -1,12 +1,10 @@
 package com.edu.consul.controller;
 
-import com.edu.consul.model.User;
 import com.edu.consul.service.AuthService;
 import com.edu.consul.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,10 +27,10 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getUser() {
+    public ResponseEntity<?> getUser() {
         UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         LOG.info("userDetails: "+userDetails);
-        return new ResponseEntity<>(userService.getUserData(userDetails.getUsername()), HttpStatus.OK);
+        return ResponseEntity.ok().body(userService.getUserData(userDetails.getUsername()));
     }
 }

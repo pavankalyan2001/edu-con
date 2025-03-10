@@ -26,4 +26,9 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody User user) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.registerUser(user));
     }
+
+    @GetMapping("/consultants")
+    public ResponseEntity<?> getConsultants() {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getConsultants());
+    }
 }

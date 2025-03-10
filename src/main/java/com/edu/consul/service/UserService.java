@@ -4,6 +4,7 @@ import com.edu.consul.exceptions.BadRequestException;
 import com.edu.consul.model.Appointment;
 import com.edu.consul.model.User;
 import com.edu.consul.repository.UserRepository;
+import com.edu.consul.util.Role;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +31,7 @@ public class UserService {
             throw new BadRequestException("User with email " + user.getEmail() + " already exists!");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.valueOf(user.getRole().toUpperCase()).getDisplayName());
         return userRepository.save(user);
     }
 
@@ -46,5 +48,9 @@ public class UserService {
             user.setAppointments(appIds);
             userRepository.save(user);
         }
+    }
+
+    public List<User> getConsultants() {
+        return userRepository.findAllByRole(Role.CONSULTANT.getDisplayName());
     }
 }
