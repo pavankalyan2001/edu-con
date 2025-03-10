@@ -1,7 +1,6 @@
 package com.edu.consul.controller;
 
-import com.edu.consul.dto.UserData;
-import com.edu.consul.mapper.UserMapper;
+import com.edu.consul.model.User;
 import com.edu.consul.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
@@ -17,7 +16,6 @@ public class UserController {
     private static final Log LOG = LogFactory.getLog(UserController.class);
 
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @GetMapping("/test")
     ResponseEntity<String> test(@RequestParam("msg") String msg) {
@@ -25,13 +23,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserData user) {
-        try {
-            userService.registerUser(userMapper.userObjectToModel(user));
-            return new ResponseEntity<>("Success", HttpStatus.OK);
-        } catch (Exception e) {
-            LOG.error(e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<?> register(@RequestBody User user) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.registerUser(user));
     }
 }

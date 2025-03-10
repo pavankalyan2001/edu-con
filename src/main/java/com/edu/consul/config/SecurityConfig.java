@@ -12,7 +12,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtUtil util) throws Exception {
-        http.csrf().disable().authorizeRequests().antMatchers("/api/users/register", "/api/auth/login").permitAll().anyRequest().authenticated().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().addFilter(new JwtAuthorizationFilter(util));
+        http
+                .cors().and()
+                .csrf().disable()
+                .authorizeRequests().antMatchers("/api/users/register", "/api/auth/login").permitAll()
+                .anyRequest().authenticated().and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .addFilter(new JwtAuthorizationFilter(util));
 
         return http.build();
     }
