@@ -5,13 +5,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collection = "appointments")
-public class Appointment {
+@Document(collection = "productpurchases")
+public class ProductPurchase {
     @Id
     private String id;
     private String studentId;
     private String consultantId;
-    String date;
-    String timeSlot;
-    private String status;
+    private String price;
+    private String productName;
 }

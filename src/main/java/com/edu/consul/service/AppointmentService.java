@@ -7,13 +7,13 @@ import com.edu.consul.model.User;
 import com.edu.consul.repository.AppointmentRepository;
 import com.edu.consul.repository.UserRepository;
 import com.edu.consul.util.AppointmentStatus;
-import com.edu.consul.util.EduUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,6 @@ public class AppointmentService {
     private static final Log LOG = LogFactory.getLog(AppointmentService.class);
     private final AppointmentRepository appointmentRepository;
     private final UserService userService;
-    private final ConsultantService consultantService;
     private final UserRepository userRepository;
 
     public Map<String, Object> bookAppointment(Appointment appointment) {
@@ -30,7 +29,6 @@ public class AppointmentService {
             appointment.setStatus(AppointmentStatus.PENDING.getDisplayName());
             Appointment appointmentDetails = appointmentRepository.save(appointment);
             userService.updateStudentData(appointmentDetails);
-            consultantService.updateConsultantData(appointmentDetails);
             return getAppointmentDetails(appointmentDetails);
         } catch (Exception e) {
             LOG.error(e);
@@ -44,12 +42,15 @@ public class AppointmentService {
     }
 
     private Map<String, Object> getAppointmentDetails(Appointment appointment) {
+        if (appointment == null) {
+            return null;
+        }
         Map<String, Object> map = new HashMap<>();
         map.put("id", appointment.getId());
         map.put("consultantId", appointment.getConsultantId());
         map.put("studentId", appointment.getStudentId());
         map.put("appointmentSlot", appointment.getTimeSlot());
-        map.put("appointmentDate", EduUtils.getNormalDate(appointment.getDate()));
+        map.put("appointmentDate", appointment.getDate());
         map.put("status", appointment.getStatus());
 
         User student = userRepository.findById(appointment.getStudentId()).orElse(null);
@@ -59,26 +60,54 @@ public class AppointmentService {
         return map;
     }
 
-    public List<Appointment> getAppointmentsForConsultant(String consultantId) {
-        return appointmentRepository.findAllByConsultantId(consultantId);
+    public List<Map<String, Object>> getAppointmentsForConsultant(String consultantId) {
+        List<Appointment> appointments = appointmentRepository.findAllByConsultantId(consultantId);
+        return appointments.stream().map(this::getAppointmentDetails).toList();
     }
 
-    public Appointment updateAppointmentStatus(Appointment appointment) {
-        return appointmentRepository.findById(appointment.getId()).map(appointmentDB -> {
-            appointmentDB.setStatus(getAppointmentStatus(appointment.getStatus()).getDisplayName());
+    public Map<String, Object> updateAppointmentStatus(String appointmentId, String appointmentStatus) {
+        return getAppointmentDetails(appointmentRepository.findById(appointmentId).map(appointmentDB -> {
+            appointmentDB.setStatus(getAppointmentStatus(appointmentStatus).getDisplayName());
             return appointmentRepository.save(appointmentDB);
-        }).orElse(null);
+        }).orElse(null));
     }
 
     private AppointmentStatus getAppointmentStatus(String status) {
         try {
+            if (status.equalsIgnoreCase("confirm")) {
+                return AppointmentStatus.CONFIRMED;
+            } else if (status.equalsIgnoreCase("reject")) {
+                return AppointmentStatus.CANCELED;
+            }
             return AppointmentStatus.valueOf(status.toUpperCase());
         } catch (Exception e) {
             throw new BadRequestException("Invalid status");
         }
     }
 
-    public List<Appointment> getBookedSlots(String date, String consultantId) {
-        return appointmentRepository.findAllByDateAndConsultantId(EduUtils.getStandardDate(date), consultantId);
+    public List<String> fetchAvailableSlots(String date, String consultantId) {
+        List<String> availableSlots = new ArrayList<>(Arrays.asList("9AM-10:30AM",
+                "11AM-12:30PM",
+                "3PM-4:30PM"));
+        List<Appointment> appointments = appointmentRepository.findConfirmedAppointments(date, consultantId);
+        Set<String> bookedSlots = appointments.stream().map(Appointment::getTimeSlot).collect(Collectors.toSet());
+        availableSlots.removeAll(bookedSlots);
+        return availableSlots;
+    }
+
+    public List<Map<String, Object>> getAllAppointments() {
+        List<Appointment> appointments = appointmentRepository.findAll();
+        return appointments.stream().map(this::getAppointmentDetails).toList();
+    }
+
+    public String deleteAppointment(String appointmentId) {
+        List<User> allUsers = userRepository.findAll();
+        allUsers.forEach(user -> {
+            if (!Objects.isNull(user.getAppointments()))
+                user.getAppointments().removeIf(appointment -> appointment.getId().equals(appointmentId));
+        });
+        userRepository.saveAll(allUsers);
+        appointmentRepository.deleteById(appointmentId);
+        return "Success";
     }
 }

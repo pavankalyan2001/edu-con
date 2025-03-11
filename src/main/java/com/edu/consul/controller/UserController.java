@@ -5,6 +5,7 @@ import com.edu.consul.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,5 +31,16 @@ public class UserController {
     @GetMapping("/consultants")
     public ResponseEntity<?> getConsultants() {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getConsultants());
+    }
+
+    @GetMapping("/fetchAll")
+    public Page<User> getUsers(@RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "10") int size) {
+        return userService.getUsersExceptAdmin(page, size);
+    }
+
+    @DeleteMapping
+    public void deleteUser(@RequestParam String userId, @RequestParam String role){
+        userService.deleteUser(userId,role);
     }
 }
