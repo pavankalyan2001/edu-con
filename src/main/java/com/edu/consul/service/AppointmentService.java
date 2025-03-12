@@ -78,6 +78,8 @@ public class AppointmentService {
                 return AppointmentStatus.CONFIRMED;
             } else if (status.equalsIgnoreCase("reject")) {
                 return AppointmentStatus.CANCELED;
+            }else if (status.equalsIgnoreCase("complete")) {
+                return AppointmentStatus.COMPLETED;
             }
             return AppointmentStatus.valueOf(status.toUpperCase());
         } catch (Exception e) {
